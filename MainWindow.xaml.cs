@@ -7,6 +7,7 @@ using GMap.NET.MapProviders;
 using System.Windows.Forms;
 using System;
 using GMap.NET.WindowsPresentation;
+using System.Threading;
 
 namespace _33.Пшы
 {
@@ -17,13 +18,18 @@ namespace _33.Пшы
     {
 
 
-        Dictionary<Food, double> foodDict = new Dictionary<Food, double>();
-        Dictionary<Food, double> sortDistFoodDict = new Dictionary<Food, double>();
+        Dictionary<MapObject, double> pointRouteDict = new Dictionary<MapObject, double>();
+        Dictionary<MapObject, double> sortPointRouteDict = new Dictionary<MapObject, double>();
         List<MapObject> listOfAllObj = new List<MapObject>();
-        List<Food> listOfAllFood = new List<Food>();
         int setTool; // 0 - arrow; 1 - car; 2 - human; 3 - food;
         string searchName = "";
         PointLatLng deliveryAddress = new PointLatLng();
+
+        Food warehouse_curd = new Food("сырок", new PointLatLng(55.012823, 82.950359), 0);
+        Food warehouse_meat = new Food("Мясо", new PointLatLng(55.011823, 82.960359), 3);
+        Food warehouse_milk = new Food("Молоко", new PointLatLng(55.011, 82.952), 2);
+        Food warehouse_watermelon = new Food("Арбуз", new PointLatLng(55.010, 82.94), 1);
+        Food warehouse_egg = new Food("Яйцо", new PointLatLng(55.013, 82.962), 4);
         public MainWindow()
         {
             InitializeComponent();
@@ -53,7 +59,7 @@ namespace _33.Пшы
                     listOfAllObj.Add(human);
                     break;
                 case 3:
-                    
+
                     break;
                 default:
                     break;
@@ -83,7 +89,7 @@ namespace _33.Пшы
         {
             // настройка доступа к данным
             GMaps.Instance.Mode = AccessMode.ServerAndCache;
-                
+
             // установка провайдера карт
             Map.MapProvider = BingMapProvider.Instance;
             BingMapProvider.Instance.ClientKey = "aXAGSqm169O6Mc7UzDAE~mRwh4DxJnpIEWrHJtxwS-w~AgHeUYXq2mVyEdtUchGC1zmOqd1Ndc2w14IpdPRn86dXSi2_FRh04Lb8bVLE8wMg";
@@ -99,29 +105,13 @@ namespace _33.Пшы
             Map.CanDragMap = true;
             Map.DragButton = MouseButton.Middle;
 
-            Food food1 = new Food("сырок", new PointLatLng(55.012823, 82.950359));
-            Food food2 = new Food("Мясо", new PointLatLng(55.011823, 82.960359));
-            Food food3 = new Food("Молоко", new PointLatLng(55.011, 82.952));
-            Food food4 = new Food("Арбуз", new PointLatLng(55.010, 82.94));
-            Food food5 = new Food("Яйцо", new PointLatLng(55.013, 82.962));
-            Map.Markers.Add(food1.getMarker());
-            Map.Markers.Add(food2.getMarker());
-            Map.Markers.Add(food3.getMarker());
-            Map.Markers.Add(food4.getMarker());
-            Map.Markers.Add(food5.getMarker());
-
-            listOfAllFood.Add(food1);
-            listOfAllFood.Add(food2);
-            listOfAllFood.Add(food3);
-            listOfAllFood.Add(food4);
-            listOfAllFood.Add(food5);
-
-
-
+            Map.Markers.Add(warehouse_curd.getMarker());
+            Map.Markers.Add(warehouse_meat.getMarker());
+            Map.Markers.Add(warehouse_milk.getMarker());
+            Map.Markers.Add(warehouse_watermelon.getMarker());
+            Map.Markers.Add(warehouse_egg.getMarker());
 
         }
-
-        
 
 
         private bool FindByName(MapObject obj)
@@ -142,47 +132,71 @@ namespace _33.Пшы
 
         private void btn_go_Click(object sender, RoutedEventArgs e)
         {
-            PointLatLng firstFood = searchNearestFood(listOfAllObj.FindLast(FindCar).getFocus());
-            List<PointLatLng> list = FindRoute(firstFood, listOfAllObj.FindLast(FindCar).getFocus());
-            Route r = new Route("Route", list);
-            foreach (Food item in sortDistFoodDict.Keys)
+            List<PointLatLng> pointsRoute = new List<PointLatLng>();
+            List<MapObject> warehouse = new List<MapObject>();
+            //создание списка пунктов складов
+            pointsRoute.Add(deliveryAddress);
+            if ((bool)chb_curd.IsChecked) { warehouse.Add(warehouse_curd); }
+            if ((bool)chb_egg.IsChecked) { warehouse.Add(warehouse_egg); }
+            if ((bool)chb_milk.IsChecked) { warehouse.Add(warehouse_milk); }
+            if ((bool)chb_meat.IsChecked) { warehouse.Add(warehouse_meat); }
+            if ((bool)chb_watermelon.IsChecked) { warehouse.Add(warehouse_watermelon); }
+            //сортировка списка по расстоянию:
+            ////поиск ближайшей точки к адресу доставки из всех точек складов
+            ////поиск ближайшей точки к последнему в списке пути из всех точек складов
+            while (warehouse.Count > 0)
             {
-                r.addPointToPoints(item.getFocus());
-
+                pointsRoute.Add(searchNearestPoint(pointsRoute.Last(), warehouse));
             }
-                r.addPointToPoints(deliveryAddress);
+            ////поиск ближайшей машины к последнему в спискепути из всех машин
+            Car deliveryCar = (Car)searchNearestCar(pointsRoute.Last(), listOfAllObj.FindAll(FindCar));
+            pointsRoute.Add(deliveryCar.getFocus());
+            pointsRoute.Reverse();
+            //1) создание Route по этим точкам
+            Route route = new Route("Route", pointsRoute);
+            Map.Markers.Add(route.getMarker());
+            deliveryCar.moveTo(route.getPoints().Last());
+            
+            //2) создание Route по этим точкам через MapRoute
 
 
-            Map.Markers.Add(r.getMarker());
-            listOfAllObj.Add(r);
+
         }
 
-        private PointLatLng searchNearestFood(PointLatLng point)
+        private PointLatLng searchNearestPoint(PointLatLng point, List<MapObject> list)
         {
-            foreach (Food obj in listOfAllFood)
+            foreach (MapObject obj in list)
             {
-                foodDict.Add(obj, obj.getDistance(point));
+                pointRouteDict.Add(obj, obj.getDistance(point));
             }
-            sortDistFoodDict = foodDict.OrderBy(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
-
-            return sortDistFoodDict.Keys.ElementAt(0).getFocus();
+            sortPointRouteDict = pointRouteDict.OrderBy(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
+            list.Remove(sortPointRouteDict.Keys.First());
+            pointRouteDict.Clear();
+            return sortPointRouteDict.Keys.ElementAt(0).getFocus();
+        }
+        private MapObject searchNearestCar(PointLatLng point, List<MapObject> list)
+        {
+            foreach (MapObject obj in list)
+            {
+                pointRouteDict.Add(obj, obj.getDistance(point));
+            }
+            sortPointRouteDict = pointRouteDict.OrderBy(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
+            pointRouteDict.Clear();
+            return sortPointRouteDict.Keys.ElementAt(0);
         }
 
-        private List<PointLatLng> FindRoute(PointLatLng startPoint, PointLatLng endPoint) {
-            // Получить путь
-            //MapRoute route = BingMapProvider.Instance.GetRoute(startPoint, endPoint, false, false, (int)this.Map.Zoom);
-            //if (route != null)
-            //{
-            List<PointLatLng> list = new List<PointLatLng>();
-            list.Add(startPoint);
-            list.Add(endPoint);
-            return list;
-                
-            //}
-            //else
-            //{
-            //    System.Windows.Forms.MessageBox.Show("Не удалось найти маршрут");
-            //}
+        private void FindRoute(PointLatLng startPoint, PointLatLng endPoint)
+        {
+            MapRoute route = BingMapProvider.Instance.GetRoute(startPoint, endPoint, false, false, (int)this.Map.Zoom);
+            if (route != null)
+            {
+                Route r = new Route("Route", route.Points);
+                Map.Markers.Add(r.getMarker());
+            }
+            else
+            {
+                System.Windows.Forms.MessageBox.Show("Не удалось найти маршрут");
+            }
         }
 
         private void btn_deliver_car_create_Click(object sender, RoutedEventArgs e)
@@ -194,9 +208,14 @@ namespace _33.Пшы
         {
             setTool = 0;
             Map.Markers.Clear();
-            listOfAllFood.Clear();
             listOfAllObj.Clear();
-            foodDict.Clear();
+            pointRouteDict.Clear();
+
+            Map.Markers.Add(warehouse_curd.getMarker());
+            Map.Markers.Add(warehouse_meat.getMarker());
+            Map.Markers.Add(warehouse_milk.getMarker());
+            Map.Markers.Add(warehouse_watermelon.getMarker());
+            Map.Markers.Add(warehouse_egg.getMarker());
         }
     }
 }

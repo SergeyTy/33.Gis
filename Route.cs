@@ -20,6 +20,11 @@ namespace _33.Пшы
             this.points = points;
         }
 
+        public List<PointLatLng> getPoints()
+        {
+            return points;
+        }
+
         public void addPointToPoints(PointLatLng p)
         {
             this.points.Add(p);

@@ -13,9 +13,11 @@ namespace _33.Пшы
     class Food : MapObject
     {
         PointLatLng point;
-        public Food(string title, PointLatLng point) : base(title)
+        int type = 0; //0 -  curd; 1 - watermelon; 2 - milk; 3 - meat; 4 - egg;
+        public Food(string title, PointLatLng point, int type) : base(title)
         {
             this.point = point;
+            this.type = type;
         }
 
         public override double getDistance(PointLatLng point)
@@ -37,17 +39,85 @@ namespace _33.Пшы
 
         public override GMapMarker getMarker()
         {
-            GMapMarker MarkHuman = new GMapMarker(point)
+            GMapMarker MarkHuman;
+            MarkHuman = new GMapMarker(point)
             {
                 Shape = new Image
                 {
                     Width = 32, // ширина маркера
                     Height = 32, // высота маркера
                     ToolTip = this.getTitle(), // всплывающая подсказка
-                    Source = new BitmapImage(new Uri("pack://application:,,,/Resources/location.png")) // картинка
+                    Source = new BitmapImage(new Uri("pack://application:,,,/Resources/curd.png")) // картинка
                 }
             };
+            switch (type)
+            {
+                case 0:
+                    MarkHuman = new GMapMarker(point)
+                    {
+                        Shape = new Image
+                        {
+                            Width = 32, // ширина маркера
+                            Height = 32, // высота маркера
+                            ToolTip = this.getTitle(), // всплывающая подсказка
+                            Source = new BitmapImage(new Uri("pack://application:,,,/Resources/curd.png")) // картинка
+                        }
+                    };
+                    break;
+                case 1:
+                    MarkHuman = new GMapMarker(point)
+                    {
+                        Shape = new Image
+                        {
+                            Width = 32, // ширина маркера
+                            Height = 32, // высота маркера
+                            ToolTip = this.getTitle(), // всплывающая подсказка
+                            Source = new BitmapImage(new Uri("pack://application:,,,/Resources/watermelon.png")) // картинка
+                        }
+                    };
+                    break;
+                case 2:
+                    MarkHuman = new GMapMarker(point)
+                    {
+                        Shape = new Image
+                        {
+                            Width = 32, // ширина маркера
+                            Height = 32, // высота маркера
+                            ToolTip = this.getTitle(), // всплывающая подсказка
+                            Source = new BitmapImage(new Uri("pack://application:,,,/Resources/milk.png")) // картинка
+                        }
+                    };
+                    break;
+                case 3:
+                    MarkHuman = new GMapMarker(point)
+                    {
+                        Shape = new Image
+                        {
+                            Width = 32, // ширина маркера
+                            Height = 32, // высота маркера
+                            ToolTip = this.getTitle(), // всплывающая подсказка
+                            Source = new BitmapImage(new Uri("pack://application:,,,/Resources/meat.png")) // картинка
+                        }
+                    };
+                    break;
+                case 4:
+                    MarkHuman = new GMapMarker(point)
+                    {
+                        Shape = new Image
+                        {
+                            Width = 32, // ширина маркера
+                            Height = 32, // высота маркера
+                            ToolTip = this.getTitle(), // всплывающая подсказка
+                            Source = new BitmapImage(new Uri("pack://application:,,,/Resources/egg.png")) // картинка
+                        }
+                    };
+                    break;
+                default:
+                    break;
+            }
+
             return MarkHuman;
+
         }
     }
 }
