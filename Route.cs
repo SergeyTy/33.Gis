@@ -20,6 +20,11 @@ namespace _33.Пшы
             this.points = points;
         }
 
+        public void addPointToPoints(PointLatLng p)
+        {
+            this.points.Add(p);
+        }
+
         public override double getDistance(PointLatLng point)
         {
             double dist;
@@ -38,13 +43,13 @@ namespace _33.Пшы
 
             foreach (var p in points)
             {
-                if (max.Lat+max.Lng <p.Lat+p.Lng)
+                if (max.Lat + max.Lng < p.Lat + p.Lng)
                 {
                     max = p;
                 }
             }
 
-            PointLatLng min = new PointLatLng(180,180);
+            PointLatLng min = new PointLatLng(180, 180);
 
             foreach (var p in points)
             {
@@ -54,7 +59,7 @@ namespace _33.Пшы
                 }
             }
 
-            return new PointLatLng((max.Lat + min.Lat)/2, (max.Lng + min.Lng)/2);
+            return new PointLatLng((max.Lat + min.Lat) / 2, (max.Lng + min.Lng) / 2);
         }
 
 

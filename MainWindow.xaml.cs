@@ -1,22 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using GMap.NET;
 using GMap.NET.MapProviders;
-using GMap.NET.WindowsPresentation;
-using System.Device.Location;
 using System.Windows.Forms;
+using System;
+using GMap.NET.WindowsPresentation;
 
 namespace _33.Пшы
 {
@@ -26,13 +16,14 @@ namespace _33.Пшы
     public partial class MainWindow : Window
     {
 
-        List<PointLatLng> pointsArea = new List<PointLatLng>();
-        List<PointLatLng> pointsRoute = new List<PointLatLng>();
-        Dictionary<MapObject, double> distDict = new Dictionary<MapObject, double>();
-        Dictionary<MapObject, double> sortDistDict = new Dictionary<MapObject, double>();
+
+        Dictionary<Food, double> foodDict = new Dictionary<Food, double>();
+        Dictionary<Food, double> sortDistFoodDict = new Dictionary<Food, double>();
         List<MapObject> listOfAllObj = new List<MapObject>();
-        int setTool; // 0 - arrow; 1 - car; 2 - human; 3 - route; 4 - area; 5 - search obj&dist; 
+        List<Food> listOfAllFood = new List<Food>();
+        int setTool; // 0 - arrow; 1 - car; 2 - human; 3 - food;
         string searchName = "";
+        PointLatLng deliveryAddress = new PointLatLng();
         public MainWindow()
         {
             InitializeComponent();
@@ -41,7 +32,7 @@ namespace _33.Пшы
         private void Map_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             PointLatLng point = Map.FromLocalToLatLng((int)e.GetPosition(Map).X, (int)e.GetPosition(Map).Y);
-            xy_log.Content = "x: " + (int)e.GetPosition(Map).X + "; y:" + (int)e.GetPosition(Map).Y;
+            string log = "x: " + (int)e.GetPosition(Map).X + "; y:" + (int)e.GetPosition(Map).Y;
 
             switch (setTool)
             {
@@ -52,66 +43,17 @@ namespace _33.Пшы
                     Car car = new Car($"Car {lastCar + 1}", point);
                     Map.Markers.Add(car.getMarker());
                     listOfAllObj.Add(car);
-                    lb_objectOnMap.Items.Add(car.getTitle());
+
                     break;
                 case 2:
+                    deliveryAddress = point;
                     int lastHu = listOfAllObj.FindAll(FindHu).Count();
                     Human human = new Human($"Human {lastHu + 1}", point);
                     Map.Markers.Add(human.getMarker());
                     listOfAllObj.Add(human);
-                    lb_objectOnMap.Items.Add(human.getTitle());
                     break;
                 case 3:
-                    pointsRoute.Add(point);
-                    if (pointsRoute.Count < 2) break;
-                    DialogResult result = System.Windows.Forms.MessageBox.Show(
-                         "Добавить ещё?",
-                         "Сообщение",
-                         MessageBoxButtons.YesNo,
-                         MessageBoxIcon.Information,
-                         MessageBoxDefaultButton.Button2);
-                    if (result == System.Windows.Forms.DialogResult.No)
-                    {
-                        int lastRoute = listOfAllObj.FindAll(FindRo).Count();
-                        Route route = new Route($"Route  {lastRoute + 1}", pointsRoute);
-                        Map.Markers.Add(route.getMarker());
-                        listOfAllObj.Add(route);
-                        lb_objectOnMap.Items.Add(route.getTitle());
-                        setTool = 0;
-                    }
-                    else { setTool = 3; }
-                    break;
-                case 4:
-                    pointsArea.Add(point);
-                    if (pointsArea.Count < 3) break;
-                    DialogResult result1 = System.Windows.Forms.MessageBox.Show(
-                         "Добавить ещё?",
-                         "Сообщение",
-                         MessageBoxButtons.YesNo,
-                         MessageBoxIcon.Information,
-                         MessageBoxDefaultButton.Button2);
-                    if (result1 == System.Windows.Forms.DialogResult.No)
-                    {
-                        int lastArea = listOfAllObj.FindAll(FindArea).Count();
-                        Area area = new Area($"Area  {lastArea + 1}", pointsArea);
-                        Map.Markers.Add(area.getMarker());
-                        listOfAllObj.Add(area);
-                        lb_objectOnMap.Items.Add(area.getTitle());
-                        setTool = 0;
-                    }
-                    else { setTool = 4; }
-                    break;
-                case 5:
-                    lb_searchItmesByDist.Items.Clear();
-                    foreach (MapObject obj in listOfAllObj)
-                    {
-                        distDict.Add(obj, obj.getDistance(point));
-                    }
-                    sortDistDict = distDict.OrderBy(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
-                    foreach (MapObject obj in sortDistDict.Keys)
-                    {
-                        lb_searchItmesByDist.Items.Add(obj.getTitle() + " " + obj.getDistance(point));
-                    }
+                    
                     break;
                 default:
                     break;
@@ -141,11 +83,12 @@ namespace _33.Пшы
         {
             // настройка доступа к данным
             GMaps.Instance.Mode = AccessMode.ServerAndCache;
-
+                
             // установка провайдера карт
-            Map.MapProvider = GoogleMapProvider.Instance;
+            Map.MapProvider = BingMapProvider.Instance;
+            BingMapProvider.Instance.ClientKey = "aXAGSqm169O6Mc7UzDAE~mRwh4DxJnpIEWrHJtxwS-w~AgHeUYXq2mVyEdtUchGC1zmOqd1Ndc2w14IpdPRn86dXSi2_FRh04Lb8bVLE8wMg";
 
-            // установка зума карты
+            // установка зума карты    
             Map.MinZoom = 2;
             Map.MaxZoom = 17;
             Map.Zoom = 15;
@@ -155,60 +98,31 @@ namespace _33.Пшы
             Map.MouseWheelZoomType = MouseWheelZoomType.MousePositionAndCenter;
             Map.CanDragMap = true;
             Map.DragButton = MouseButton.Middle;
+
+            Food food1 = new Food("сырок", new PointLatLng(55.012823, 82.950359));
+            Food food2 = new Food("Мясо", new PointLatLng(55.011823, 82.960359));
+            Food food3 = new Food("Молоко", new PointLatLng(55.011, 82.952));
+            Food food4 = new Food("Арбуз", new PointLatLng(55.010, 82.94));
+            Food food5 = new Food("Яйцо", new PointLatLng(55.013, 82.962));
+            Map.Markers.Add(food1.getMarker());
+            Map.Markers.Add(food2.getMarker());
+            Map.Markers.Add(food3.getMarker());
+            Map.Markers.Add(food4.getMarker());
+            Map.Markers.Add(food5.getMarker());
+
+            listOfAllFood.Add(food1);
+            listOfAllFood.Add(food2);
+            listOfAllFood.Add(food3);
+            listOfAllFood.Add(food4);
+            listOfAllFood.Add(food5);
+
+
+
+
         }
 
-        private void btn_loc_Click(object sender, RoutedEventArgs e)
-        {
-            Map.Position = new PointLatLng(55.012823, 82.950359);
-        }
+        
 
-        private void btn_arrow_Click(object sender, RoutedEventArgs e)
-        {
-            setTool = 0;
-        }
-
-        private void btn_car_Click(object sender, RoutedEventArgs e)
-        {
-            setTool = 1;
-        }
-
-        private void btn_human_Click(object sender, RoutedEventArgs e)
-        {
-            setTool = 2;
-        }
-
-        private void btn_route_Click(object sender, RoutedEventArgs e)
-        {
-            pointsRoute = new List<PointLatLng>();
-            setTool = 3;
-        }
-
-        private void btn_area_Click(object sender, RoutedEventArgs e)
-        {
-            pointsArea = new List<PointLatLng>();
-            setTool = 4;
-        }
-        private void btn_search_Click(object sender, RoutedEventArgs e)
-        {
-            distDict = new Dictionary<MapObject, double>();
-            setTool = 5;
-        }
-
-        private void btn_back_Click(object sender, RoutedEventArgs e)
-        {
-            lb_searchItmesByDist.Items.Clear();
-            Map.Markers.RemoveAt(Map.Markers.Count() - 1);
-            listOfAllObj.RemoveAt(listOfAllObj.Count() - 1);
-            lb_objectOnMap.Items.RemoveAt(lb_objectOnMap.Items.Count - 1);
-        }
-
-        private void ListofObj_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (lb_objectOnMap.SelectedIndex == -1) return;
-            searchName = lb_objectOnMap.SelectedItem.ToString();
-            Map.Position = listOfAllObj.Find(FindByName).getFocus();
-            lb_objectOnMap.SelectedIndex = -1;
-        }
 
         private bool FindByName(MapObject obj)
         {
@@ -219,32 +133,70 @@ namespace _33.Пшы
             return false;
         }
 
-        private void ListSearch_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (lb_searchItmesByDist.SelectedIndex == -1) return;
 
-            Map.Position = sortDistDict.ElementAt(lb_searchItmesByDist.SelectedIndex).Key.getFocus();
+
+        private void btn_pointB_Click(object sender, RoutedEventArgs e)
+        {
+            setTool = 2;
         }
 
-        private void btn_srchByName_Click(object sender, RoutedEventArgs e)
+        private void btn_go_Click(object sender, RoutedEventArgs e)
         {
-            lb_searchItemsByName.Items.Clear();
-            string nameSearch = tb_Search.Text;
-            foreach (MapObject obj in listOfAllObj)
+            PointLatLng firstFood = searchNearestFood(listOfAllObj.FindLast(FindCar).getFocus());
+            List<PointLatLng> list = FindRoute(firstFood, listOfAllObj.FindLast(FindCar).getFocus());
+            Route r = new Route("Route", list);
+            foreach (Food item in sortDistFoodDict.Keys)
             {
-                if (obj.getTitle().StartsWith(nameSearch))
-                {
-                    lb_searchItemsByName.Items.Add(obj.getTitle());
-                }
+                r.addPointToPoints(item.getFocus());
+
             }
+                r.addPointToPoints(deliveryAddress);
+
+
+            Map.Markers.Add(r.getMarker());
+            listOfAllObj.Add(r);
         }
 
-        private void ListSearchByName_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private PointLatLng searchNearestFood(PointLatLng point)
         {
-            if (lb_searchItemsByName.SelectedIndex == -1) return;
-            searchName = lb_searchItemsByName.SelectedItem.ToString();
-            Map.Position = listOfAllObj.Find(FindByName).getFocus();
-            lb_objectOnMap.SelectedIndex = -1;
+            foreach (Food obj in listOfAllFood)
+            {
+                foodDict.Add(obj, obj.getDistance(point));
+            }
+            sortDistFoodDict = foodDict.OrderBy(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
+
+            return sortDistFoodDict.Keys.ElementAt(0).getFocus();
+        }
+
+        private List<PointLatLng> FindRoute(PointLatLng startPoint, PointLatLng endPoint) {
+            // Получить путь
+            //MapRoute route = BingMapProvider.Instance.GetRoute(startPoint, endPoint, false, false, (int)this.Map.Zoom);
+            //if (route != null)
+            //{
+            List<PointLatLng> list = new List<PointLatLng>();
+            list.Add(startPoint);
+            list.Add(endPoint);
+            return list;
+                
+            //}
+            //else
+            //{
+            //    System.Windows.Forms.MessageBox.Show("Не удалось найти маршрут");
+            //}
+        }
+
+        private void btn_deliver_car_create_Click(object sender, RoutedEventArgs e)
+        {
+            setTool = 1;
+        }
+
+        private void btn_reset_Click(object sender, RoutedEventArgs e)
+        {
+            setTool = 0;
+            Map.Markers.Clear();
+            listOfAllFood.Clear();
+            listOfAllObj.Clear();
+            foodDict.Clear();
         }
     }
 }

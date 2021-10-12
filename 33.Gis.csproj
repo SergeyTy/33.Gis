@@ -63,6 +63,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Food.cs" />
     <Compile Include="Human.cs" />
     <Compile Include="Location.cs" />
     <Compile Include="Route.cs" />
