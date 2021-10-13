@@ -92,7 +92,7 @@ namespace _33.Пшы
 
             // установка провайдера карт
             Map.MapProvider = BingMapProvider.Instance;
-            BingMapProvider.Instance.ClientKey = "aXAGSqm169O6Mc7UzDAE~mRwh4DxJnpIEWrHJtxwS-w~AgHeUYXq2mVyEdtUchGC1zmOqd1Ndc2w14IpdPRn86dXSi2_FRh04Lb8bVLE8wMg";
+            BingMapProvider.Instance.ClientKey = "sw8a7MkIoE2MepwcaRuW~CPVpB235mqNxC1wnSOowow~AmoJWWGQsB_RN31sQRcokJbF4w3ZRyPnxi56aoJmhDHm1vTpfj18RgyvbTLVkegK";
 
             // установка зума карты    
             Map.MinZoom = 2;
