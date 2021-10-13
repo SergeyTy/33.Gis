@@ -217,5 +217,10 @@ namespace _33.Пшы
             Map.Markers.Add(warehouse_watermelon.getMarker());
             Map.Markers.Add(warehouse_egg.getMarker());
         }
+
+        private void btn_test_Click(object sender, RoutedEventArgs e)
+        {
+            FindRoute(warehouse_curd.getFocus(),warehouse_meat.getFocus());
+        }
     }
 }
