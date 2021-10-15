@@ -11,12 +11,15 @@ using System.Windows.Media.Imaging;
 using System.Windows.Controls;
 using System.Windows;
 using System.Threading;
+using GMap.NET.MapProviders;
 
 namespace _33.Пшы
 {
     class Car : MapObject
     {
         private PointLatLng point;
+        private Route route;
+        private List<Food> orderPoints;
 
         public Car(string title, PointLatLng point) : base(title) { this.point = point; }
         public override double getDistance(PointLatLng point)
@@ -54,9 +57,22 @@ namespace _33.Пшы
         // событие прибытия
         public event EventHandler Arrived;
         // метод перемещения по маршруту
-        public void moveTo(PointLatLng endPoint)
+        public GMapMarker moveTo(PointLatLng startPoint, PointLatLng endPoint)
         {
-            this.point = endPoint;
+            MapRoute route = BingMapProvider.Instance.GetRoute(startPoint, endPoint, false, false, (int)15);
+            if (route != null)
+            {
+                Route r = new Route("Route", route.Points);
+                List<PointLatLng> RoutePoints = route.Points;
+                this.route = new Route("route", RoutePoints);
+                
+                return this.route.getMarker();
+            }
+            else
+            {
+                System.Windows.Forms.MessageBox.Show("Не удалось найти маршрут");
+                return null;
+            }
 
         }
         private void MoveByRoute(Route route)

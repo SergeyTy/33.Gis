@@ -24,6 +24,7 @@ namespace _33.Пшы
         int setTool; // 0 - arrow; 1 - car; 2 - human; 3 - food;
         string searchName = "";
         PointLatLng deliveryAddress = new PointLatLng();
+        Car deliveryCar;
 
         Food warehouse_curd = new Food("сырок", new PointLatLng(55.012823, 82.950359), 0);
         Food warehouse_meat = new Food("Мясо", new PointLatLng(55.011823, 82.960359), 3);
@@ -90,9 +91,9 @@ namespace _33.Пшы
             // настройка доступа к данным
             GMaps.Instance.Mode = AccessMode.ServerAndCache;
 
+            BingMapProvider.Instance.ClientKey = "ApJ8ub6gtG0eZWE3FRDTudqLUizCZbLIEzJPZHYPc1pzxOT3u7TmxUFfMWOkZ8M5";
             // установка провайдера карт
             Map.MapProvider = BingMapProvider.Instance;
-            BingMapProvider.Instance.ClientKey = "sw8a7MkIoE2MepwcaRuW~CPVpB235mqNxC1wnSOowow~AmoJWWGQsB_RN31sQRcokJbF4w3ZRyPnxi56aoJmhDHm1vTpfj18RgyvbTLVkegK";
 
             // установка зума карты    
             Map.MinZoom = 2;
@@ -151,13 +152,28 @@ namespace _33.Пшы
             ////поиск ближайшей машины к последнему в спискепути из всех машин
             Car deliveryCar = (Car)searchNearestCar(pointsRoute.Last(), listOfAllObj.FindAll(FindCar));
             pointsRoute.Add(deliveryCar.getFocus());
-            pointsRoute.Reverse();
             //1) создание Route по этим точкам
-            Route route = new Route("Route", pointsRoute);
-            Map.Markers.Add(route.getMarker());
-            deliveryCar.moveTo(route.getPoints().Last());
-            
+            pointsRoute.Reverse();
+
             //2) создание Route по этим точкам через MapRoute
+            List<PointLatLng> AllpointRoute = new List<PointLatLng>();
+            for (int i = 0; i < pointsRoute.Count-1; i++)
+            {
+                MapRoute route = BingMapProvider.Instance.GetRoute(pointsRoute[i], pointsRoute[i+1], false, false, (int)15);
+                if (route != null)
+                {
+                    AllpointRoute =  AllpointRoute.Concat(route.Points).ToList();
+                }
+                else
+                {
+                    System.Windows.Forms.MessageBox.Show("Не удалось найти маршрут");
+                }
+            }
+            Route r = new Route("Route", AllpointRoute);
+            Map.Markers.Add(r.getMarker());
+            
+            
+
 
 
 
@@ -187,16 +203,7 @@ namespace _33.Пшы
 
         private void FindRoute(PointLatLng startPoint, PointLatLng endPoint)
         {
-            MapRoute route = BingMapProvider.Instance.GetRoute(startPoint, endPoint, false, false, (int)this.Map.Zoom);
-            if (route != null)
-            {
-                Route r = new Route("Route", route.Points);
-                Map.Markers.Add(r.getMarker());
-            }
-            else
-            {
-                System.Windows.Forms.MessageBox.Show("Не удалось найти маршрут");
-            }
+            Map.Markers.Add(deliveryCar.moveTo(startPoint, endPoint));
         }
 
         private void btn_deliver_car_create_Click(object sender, RoutedEventArgs e)
@@ -220,7 +227,7 @@ namespace _33.Пшы
 
         private void btn_test_Click(object sender, RoutedEventArgs e)
         {
-            FindRoute(warehouse_curd.getFocus(),warehouse_meat.getFocus());
+            FindRoute(warehouse_watermelon.getFocus(), warehouse_meat.getFocus());
         }
     }
 }

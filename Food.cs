@@ -13,11 +13,21 @@ namespace _33.Пшы
     class Food : MapObject
     {
         PointLatLng point;
+        PointLatLng destination;
         int type = 0; //0 -  curd; 1 - watermelon; 2 - milk; 3 - meat; 4 - egg;
         public Food(string title, PointLatLng point, int type) : base(title)
         {
             this.point = point;
             this.type = type;
+        }
+
+        public PointLatLng getDestination()
+        {
+            return destination;
+        }
+        public void moveTo(PointLatLng p)
+        {
+            this.destination = p;
         }
 
         public override double getDistance(PointLatLng point)
