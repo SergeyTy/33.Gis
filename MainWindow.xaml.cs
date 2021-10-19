@@ -24,7 +24,8 @@ namespace _33.Пшы
         int setTool; // 0 - arrow; 1 - car; 2 - human; 3 - food;
         string searchName = "";
         PointLatLng deliveryAddress = new PointLatLng();
-        Car deliveryCar;
+        Car deliveryCar = null;
+
 
         Food warehouse_curd = new Food("сырок", new PointLatLng(55.012823, 82.950359), 0);
         Food warehouse_meat = new Food("Мясо", new PointLatLng(55.011823, 82.960359), 3);
@@ -152,31 +153,14 @@ namespace _33.Пшы
             ////поиск ближайшей машины к последнему в спискепути из всех машин
             Car deliveryCar = (Car)searchNearestCar(pointsRoute.Last(), listOfAllObj.FindAll(FindCar));
             pointsRoute.Add(deliveryCar.getFocus());
-            //1) создание Route по этим точкам
+            //переворот списка
             pointsRoute.Reverse();
 
+            //1) создание Route по этим точкам
             //2) создание Route по этим точкам через MapRoute
-            List<PointLatLng> AllpointRoute = new List<PointLatLng>();
-            for (int i = 0; i < pointsRoute.Count-1; i++)
-            {
-                MapRoute route = BingMapProvider.Instance.GetRoute(pointsRoute[i], pointsRoute[i+1], false, false, (int)15);
-                if (route != null)
-                {
-                    AllpointRoute =  AllpointRoute.Concat(route.Points).ToList();
-                }
-                else
-                {
-                    System.Windows.Forms.MessageBox.Show("Не удалось найти маршрут");
-                }
-            }
-            Route r = new Route("Route", AllpointRoute);
-            Map.Markers.Add(r.getMarker());
+            Map.Markers.Add(deliveryCar.moveTo(pointsRoute));
             
             
-
-
-
-
         }
 
         private PointLatLng searchNearestPoint(PointLatLng point, List<MapObject> list)
@@ -201,11 +185,6 @@ namespace _33.Пшы
             return sortPointRouteDict.Keys.ElementAt(0);
         }
 
-        private void FindRoute(PointLatLng startPoint, PointLatLng endPoint)
-        {
-            Map.Markers.Add(deliveryCar.moveTo(startPoint, endPoint));
-        }
-
         private void btn_deliver_car_create_Click(object sender, RoutedEventArgs e)
         {
             setTool = 1;
@@ -225,9 +204,5 @@ namespace _33.Пшы
             Map.Markers.Add(warehouse_egg.getMarker());
         }
 
-        private void btn_test_Click(object sender, RoutedEventArgs e)
-        {
-            FindRoute(warehouse_watermelon.getFocus(), warehouse_meat.getFocus());
-        }
     }
 }

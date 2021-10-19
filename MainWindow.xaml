@@ -19,7 +19,6 @@
         <Button x:Name="btn_pointB" Content="Куда" HorizontalAlignment="Left" Height="30" VerticalAlignment="Top" Width="90" Margin="0,353,0,0" Click="btn_pointB_Click"/>
         <Button x:Name="btn_go" Content="Поехали!" HorizontalAlignment="Left" Height="30" Margin="0,388,0,0" VerticalAlignment="Top" Width="90" Click="btn_go_Click"/>
         <ProgressBar HorizontalAlignment="Left" Height="30" Margin="90,388,0,0" VerticalAlignment="Top" Width="500"/>
-        <Button x:Name="btn_test" Content="Куда" HorizontalAlignment="Left" Height="30" VerticalAlignment="Top" Width="90" Margin="0,208,0,0" Click="btn_test_Click" />
 
     </Grid>
 </Window>

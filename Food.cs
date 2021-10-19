@@ -57,6 +57,7 @@ namespace _33.Пшы
                     Width = 32, // ширина маркера
                     Height = 32, // высота маркера
                     ToolTip = this.getTitle(), // всплывающая подсказка
+                    Margin = new System.Windows.Thickness(-12, -12, 0, 0),
                     Source = new BitmapImage(new Uri("pack://application:,,,/Resources/curd.png")) // картинка
                 }
             };
@@ -70,6 +71,7 @@ namespace _33.Пшы
                             Width = 32, // ширина маркера
                             Height = 32, // высота маркера
                             ToolTip = this.getTitle(), // всплывающая подсказка
+                            Margin = new System.Windows.Thickness(-12, -12, 0, 0),
                             Source = new BitmapImage(new Uri("pack://application:,,,/Resources/curd.png")) // картинка
                         }
                     };
@@ -82,6 +84,7 @@ namespace _33.Пшы
                             Width = 32, // ширина маркера
                             Height = 32, // высота маркера
                             ToolTip = this.getTitle(), // всплывающая подсказка
+                            Margin = new System.Windows.Thickness(-12, -12, 0, 0),
                             Source = new BitmapImage(new Uri("pack://application:,,,/Resources/watermelon.png")) // картинка
                         }
                     };
@@ -94,6 +97,7 @@ namespace _33.Пшы
                             Width = 32, // ширина маркера
                             Height = 32, // высота маркера
                             ToolTip = this.getTitle(), // всплывающая подсказка
+                            Margin = new System.Windows.Thickness(-12, -12, 0, 0),
                             Source = new BitmapImage(new Uri("pack://application:,,,/Resources/milk.png")) // картинка
                         }
                     };
@@ -106,6 +110,7 @@ namespace _33.Пшы
                             Width = 32, // ширина маркера
                             Height = 32, // высота маркера
                             ToolTip = this.getTitle(), // всплывающая подсказка
+                            Margin = new System.Windows.Thickness(-12, -12, 0, 0),
                             Source = new BitmapImage(new Uri("pack://application:,,,/Resources/meat.png")) // картинка
                         }
                     };
@@ -118,6 +123,7 @@ namespace _33.Пшы
                             Width = 32, // ширина маркера
                             Height = 32, // высота маркера
                             ToolTip = this.getTitle(), // всплывающая подсказка
+                            Margin = new System.Windows.Thickness(-12, -12, 0, 0),
                             Source = new BitmapImage(new Uri("pack://application:,,,/Resources/egg.png")) // картинка
                         }
                     };

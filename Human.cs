@@ -41,6 +41,7 @@ namespace _33.Пшы
                     Width = 32, // ширина маркера
                     Height = 32, // высота маркера
                     ToolTip = this.getTitle(), // всплывающая подсказка
+                    Margin = new System.Windows.Thickness(-12, -12, 0, 0),
                     Source = new BitmapImage(new Uri("pack://application:,,,/Resources/Human.png")) // картинка
                 }
             };

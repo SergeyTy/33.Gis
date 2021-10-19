@@ -20,16 +20,18 @@ namespace _33.Пшы
         private PointLatLng point;
         private Route route;
         private List<Food> orderPoints;
+        private GMapMarker carMarker = null;
+
 
         public Car(string title, PointLatLng point) : base(title) { this.point = point; }
         public override double getDistance(PointLatLng point)
         {
             double dist;
 
-            double lat = (double) Math.Abs(point.Lat - this.point.Lat);
-            double lng = (double) Math.Abs(point.Lng - this.point.Lng);
+            double lat = (double)Math.Abs(point.Lat - this.point.Lat);
+            double lng = (double)Math.Abs(point.Lng - this.point.Lng);
 
-            dist = Math.Sqrt(Math.Pow(lat, 2)+ Math.Pow(lng, 2));
+            dist = Math.Sqrt(Math.Pow(lat, 2) + Math.Pow(lng, 2));
 
             return dist;
         }
@@ -48,49 +50,52 @@ namespace _33.Пшы
                     Width = 32, // ширина маркера
                     Height = 32, // высота маркера
                     ToolTip = this.getTitle(), // всплывающая подсказка
+                    Margin = new System.Windows.Thickness(-12, -12, 0, 0),
                     Source = new BitmapImage(new Uri("pack://application:,,,/Resources/car.png")) // картинка
                 }
             };
-            return markCar;
+            return carMarker = markCar;
         }
 
-        // событие прибытия
-        public event EventHandler Arrived;
         // метод перемещения по маршруту
-        public GMapMarker moveTo(PointLatLng startPoint, PointLatLng endPoint)
+        public GMapMarker moveTo(List<PointLatLng> pointsRoute)
         {
-            MapRoute route = BingMapProvider.Instance.GetRoute(startPoint, endPoint, false, false, (int)15);
-            if (route != null)
+            List<PointLatLng> AllpointRoute = new List<PointLatLng>();
+            for (int i = 0; i < pointsRoute.Count - 1; i++)
             {
-                Route r = new Route("Route", route.Points);
-                List<PointLatLng> RoutePoints = route.Points;
-                this.route = new Route("route", RoutePoints);
-                
-                return this.route.getMarker();
+                MapRoute route = BingMapProvider.Instance.GetRoute(pointsRoute[i], pointsRoute[i + 1], false, false, (int)15);
+                if (route != null)
+                {
+                    AllpointRoute = AllpointRoute.Concat(route.Points).ToList();
+                }
+                else
+                {
+                    System.Windows.Forms.MessageBox.Show("Не удалось найти маршрут");
+                }
             }
-            else
-            {
-                System.Windows.Forms.MessageBox.Show("Не удалось найти маршрут");
-                return null;
-            }
+            this.route = new Route("Route", AllpointRoute);
+
+            Thread newThread = new Thread(new ThreadStart(MoveByRoute));
+            newThread.Start();
+
+            return route.getMarker();
 
         }
-        private void MoveByRoute(Route route)
+        private void MoveByRoute()
         {
-            PointLatLng prepoint = route.getPoints().First();
+            // последовательный перебор точек маршрута
             foreach (var point in route.getPoints())
             {
-                Application.Current.Dispatcher.Invoke(delegate
-                {
-                    getMarker().Position = point;
-                    this.turnMarker(prepoint ,point);
-                    prepoint = point;
+                // делегат, возвращающий управление в главный поток
+                Application.Current.Dispatcher.Invoke(delegate {
+                    // изменение позиции маркера
+                    carMarker.Position = point;
                 });
+                // задержка 500 мс
                 Thread.Sleep(500);
             }
-            // отправка события о прибытии после достижения последней точки маршрута
-            Arrived?.Invoke(this, null);
         }
+
 
         private void turnMarker(PointLatLng point, PointLatLng nextPoint)
         {
