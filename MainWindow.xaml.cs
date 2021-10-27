@@ -18,20 +18,28 @@ namespace _33.Пшы
     {
 
 
-        Dictionary<MapObject, double> pointRouteDict = new Dictionary<MapObject, double>();
-        Dictionary<MapObject, double> sortPointRouteDict = new Dictionary<MapObject, double>();
+        Dictionary<Food, double> orderWearhouse = new Dictionary<Food, double>();
+        Dictionary<Car, double> car = new Dictionary<Car, double>();
+        Dictionary<Food, double> sortOrderWearhose = new Dictionary<Food, double>();
+        Dictionary<Car, double> sortCar = new Dictionary<Car, double>();
         List<MapObject> listOfAllObj = new List<MapObject>();
         int setTool; // 0 - arrow; 1 - car; 2 - human; 3 - food;
         string searchName = "";
-        PointLatLng deliveryAddress = new PointLatLng();
-        Car deliveryCar = null;
+        Human deliveryAddress = null;
+        private Car deliveryCar;
+        List<Food> orderFood = new List<Food>();
 
 
-        Food warehouse_curd = new Food("сырок", new PointLatLng(55.012823, 82.950359), 0);
-        Food warehouse_meat = new Food("Мясо", new PointLatLng(55.011823, 82.960359), 3);
-        Food warehouse_milk = new Food("Молоко", new PointLatLng(55.011, 82.952), 2);
-        Food warehouse_watermelon = new Food("Арбуз", new PointLatLng(55.010, 82.94), 1);
-        Food warehouse_egg = new Food("Яйцо", new PointLatLng(55.013, 82.962), 4);
+        private Food w_curd = new Food("сырок", new PointLatLng(55.012823, 82.950359), 0);
+        private Food _curd = new Food("сырок", new PointLatLng(55.012823, 82.950359), 0);
+        private Food w_meat = new Food("Мясо", new PointLatLng(55.011823, 82.960359), 3);
+        private Food _meat = new Food("Мясо", new PointLatLng(55.011823, 82.960359), 3);
+        private Food w_milk = new Food("Молоко", new PointLatLng(55.011, 82.952), 2);
+        private Food _milk = new Food("Молоко", new PointLatLng(55.011, 82.952), 2);
+        private Food w_watermelon = new Food("Арбуз", new PointLatLng(55.010, 82.94), 1);
+        private Food _watermelon = new Food("Арбуз", new PointLatLng(55.010, 82.94), 1);
+        private Food w_egg = new Food("Яйцо", new PointLatLng(55.013, 82.962), 4);
+        private Food _egg = new Food("Яйцо", new PointLatLng(55.013, 82.962), 4);
         public MainWindow()
         {
             InitializeComponent();
@@ -49,14 +57,16 @@ namespace _33.Пшы
                 case 1:
                     int lastCar = listOfAllObj.FindAll(FindCar).Count();
                     Car car = new Car($"Car {lastCar + 1}", point);
+                    car.gMap = Map;
+
                     Map.Markers.Add(car.getMarker());
                     listOfAllObj.Add(car);
 
                     break;
                 case 2:
-                    deliveryAddress = point;
                     int lastHu = listOfAllObj.FindAll(FindHu).Count();
                     Human human = new Human($"Human {lastHu + 1}", point);
+                    deliveryAddress = human;
                     Map.Markers.Add(human.getMarker());
                     listOfAllObj.Add(human);
                     break;
@@ -107,11 +117,16 @@ namespace _33.Пшы
             Map.CanDragMap = true;
             Map.DragButton = MouseButton.Middle;
 
-            Map.Markers.Add(warehouse_curd.getMarker());
-            Map.Markers.Add(warehouse_meat.getMarker());
-            Map.Markers.Add(warehouse_milk.getMarker());
-            Map.Markers.Add(warehouse_watermelon.getMarker());
-            Map.Markers.Add(warehouse_egg.getMarker());
+            Map.Markers.Add(w_curd.getMarker());
+            Map.Markers.Add(_curd.getMarker());
+            Map.Markers.Add(w_meat.getMarker());
+            Map.Markers.Add(_meat.getMarker());
+            Map.Markers.Add(w_milk.getMarker());
+            Map.Markers.Add(_milk.getMarker());
+            Map.Markers.Add(w_watermelon.getMarker());
+            Map.Markers.Add(_watermelon.getMarker());
+            Map.Markers.Add(w_egg.getMarker());
+            Map.Markers.Add(_egg.getMarker());
 
         }
 
@@ -132,57 +147,81 @@ namespace _33.Пшы
             setTool = 2;
         }
 
+
+
         private void btn_go_Click(object sender, RoutedEventArgs e)
         {
-            List<PointLatLng> pointsRoute = new List<PointLatLng>();
+            orderFood = new List<Food>();
             List<MapObject> warehouse = new List<MapObject>();
             //создание списка пунктов складов
-            pointsRoute.Add(deliveryAddress);
-            if ((bool)chb_curd.IsChecked) { warehouse.Add(warehouse_curd); }
-            if ((bool)chb_egg.IsChecked) { warehouse.Add(warehouse_egg); }
-            if ((bool)chb_milk.IsChecked) { warehouse.Add(warehouse_milk); }
-            if ((bool)chb_meat.IsChecked) { warehouse.Add(warehouse_meat); }
-            if ((bool)chb_watermelon.IsChecked) { warehouse.Add(warehouse_watermelon); }
+            //pointsRoute.Add(deliveryAddress);
+            if ((bool)chb_curd.IsChecked) { warehouse.Add(w_curd); }
+            if ((bool)chb_egg.IsChecked) { warehouse.Add(w_egg); }
+            if ((bool)chb_milk.IsChecked) { warehouse.Add(w_milk); }
+            if ((bool)chb_meat.IsChecked) { warehouse.Add(w_meat); }
+            if ((bool)chb_watermelon.IsChecked) { warehouse.Add(w_watermelon); }
             //сортировка списка по расстоянию:
             ////поиск ближайшей точки к адресу доставки из всех точек складов
             ////поиск ближайшей точки к последнему в списке пути из всех точек складов
             while (warehouse.Count > 0)
             {
-                pointsRoute.Add(searchNearestPoint(pointsRoute.Last(), warehouse));
+                orderFood.Add(searchNearestPoint(deliveryAddress.getFocus(), warehouse));
             }
             ////поиск ближайшей машины к последнему в спискепути из всех машин
-            Car deliveryCar = (Car)searchNearestCar(pointsRoute.Last(), listOfAllObj.FindAll(FindCar));
-            pointsRoute.Add(deliveryCar.getFocus());
+            deliveryCar = searchNearestCar(orderFood.Last().getFocus(), listOfAllObj.FindAll(FindCar));
             //переворот списка
-            pointsRoute.Reverse();
+            orderFood.Reverse();
+
+            log.Text += "Список мест:\n";
+            for (int i = 0; i < orderFood.Count; i++)
+            {
+                log.Text += " " + i + ". " + orderFood[i].getTitle() + "\n";
+            }
+
+            deliveryCar.Arrived += orderFood[0].CarArrived;
+            orderFood[0].foodInCar += deliveryCar.foodInCar;
+
+            if (orderFood.Count > 1)
+            {
+                for (int i = 0; i < orderFood.Count - 1; i++)
+                {
+                    orderFood[i].foodInCar += deliveryCar.foodInCar;
+                    orderFood[i].nextLoc = orderFood[i + 1];
+                    log.Text += orderFood[i].getTitle() + " → " + orderFood[i + 1].getTitle() + "\n";
+                }
+            }
+
+            orderFood.Last().foodInCar += deliveryCar.foodInCar;
+            orderFood[orderFood.Count - 1].nextLoc = deliveryAddress;
+            log.Text += orderFood[orderFood.Count - 1].getTitle() + " → " + deliveryAddress.getTitle() + "\n";
+
+            Map.Markers.Add(deliveryCar.moveTo(orderFood[0].getFocus()));
 
             //1) создание Route по этим точкам
             //2) создание Route по этим точкам через MapRoute
-            Map.Markers.Add(deliveryCar.moveTo(pointsRoute));
-            
-            
+            //Map.Markers.Add(deliveryCar.moveTo(pointsRoute));
         }
 
-        private PointLatLng searchNearestPoint(PointLatLng point, List<MapObject> list)
+        private Food searchNearestPoint(PointLatLng point, List<MapObject> list)
         {
-            foreach (MapObject obj in list)
+            foreach (Food obj in list)
             {
-                pointRouteDict.Add(obj, obj.getDistance(point));
+                orderWearhouse.Add(obj, obj.getDistance(point));
             }
-            sortPointRouteDict = pointRouteDict.OrderBy(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
-            list.Remove(sortPointRouteDict.Keys.First());
-            pointRouteDict.Clear();
-            return sortPointRouteDict.Keys.ElementAt(0).getFocus();
+            sortOrderWearhose = orderWearhouse.OrderBy(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
+            list.Remove(sortOrderWearhose.Keys.First());
+            orderWearhouse.Clear();
+            return sortOrderWearhose.Keys.ElementAt(0);
         }
-        private MapObject searchNearestCar(PointLatLng point, List<MapObject> list)
+        private Car searchNearestCar(PointLatLng point, List<MapObject> list)
         {
-            foreach (MapObject obj in list)
+            foreach (Car obj in list)
             {
-                pointRouteDict.Add(obj, obj.getDistance(point));
+                car.Add(obj, obj.getDistance(point));
             }
-            sortPointRouteDict = pointRouteDict.OrderBy(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
-            pointRouteDict.Clear();
-            return sortPointRouteDict.Keys.ElementAt(0);
+            sortCar = car.OrderBy(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
+            car.Clear();
+            return sortCar.Keys.ElementAt(0);
         }
 
         private void btn_deliver_car_create_Click(object sender, RoutedEventArgs e)
@@ -195,13 +234,36 @@ namespace _33.Пшы
             setTool = 0;
             Map.Markers.Clear();
             listOfAllObj.Clear();
-            pointRouteDict.Clear();
+            orderWearhouse.Clear();
+            orderFood.Clear();
+            car.Clear();
+            sortOrderWearhose.Clear();
+            sortCar.Clear();
+            deliveryCar = null;
+            deliveryAddress = null;
 
-            Map.Markers.Add(warehouse_curd.getMarker());
-            Map.Markers.Add(warehouse_meat.getMarker());
-            Map.Markers.Add(warehouse_milk.getMarker());
-            Map.Markers.Add(warehouse_watermelon.getMarker());
-            Map.Markers.Add(warehouse_egg.getMarker());
+
+            w_curd = new Food("сырок", new PointLatLng(55.012823, 82.950359), 0);
+            _curd = new Food("сырок", new PointLatLng(55.012823, 82.950359), 0);
+            w_meat = new Food("Мясо", new PointLatLng(55.011823, 82.960359), 3);
+            _meat = new Food("Мясо", new PointLatLng(55.011823, 82.960359), 3);
+            w_milk = new Food("Молоко", new PointLatLng(55.011, 82.952), 2);
+            _milk = new Food("Молоко", new PointLatLng(55.011, 82.952), 2);
+            w_watermelon = new Food("Арбуз", new PointLatLng(55.010, 82.94), 1);
+            _watermelon = new Food("Арбуз", new PointLatLng(55.010, 82.94), 1);
+            w_egg = new Food("Яйцо", new PointLatLng(55.013, 82.962), 4);
+            _egg = new Food("Яйцо", new PointLatLng(55.013, 82.962), 4);
+
+            Map.Markers.Add(w_curd.getMarker());
+            Map.Markers.Add(_curd.getMarker());
+            Map.Markers.Add(w_meat.getMarker());
+            Map.Markers.Add(_meat.getMarker());
+            Map.Markers.Add(w_milk.getMarker());
+            Map.Markers.Add(_milk.getMarker());
+            Map.Markers.Add(w_watermelon.getMarker());
+            Map.Markers.Add(_watermelon.getMarker());
+            Map.Markers.Add(w_egg.getMarker());
+            Map.Markers.Add(_egg.getMarker());
         }
 
     }

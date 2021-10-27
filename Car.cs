@@ -19,8 +19,9 @@ namespace _33.Пшы
     {
         private PointLatLng point;
         private Route route;
-        private List<Food> orderPoints;
+        private List<Food> orderPoints = new List<Food>();
         private GMapMarker carMarker = null;
+        public GMapControl gMap;
 
 
         public Car(string title, PointLatLng point) : base(title) { this.point = point; }
@@ -47,55 +48,67 @@ namespace _33.Пшы
             {
                 Shape = new Image
                 {
-                    Width = 32, // ширина маркера
-                    Height = 32, // высота маркера
+                    Width = 24, // ширина маркера
+                    Height = 24, // высота маркера
                     ToolTip = this.getTitle(), // всплывающая подсказка
                     Margin = new System.Windows.Thickness(-12, -12, 0, 0),
-                    Source = new BitmapImage(new Uri("pack://application:,,,/Resources/car.png")) // картинка
+                    Source = new BitmapImage(new Uri("pack://application:,,,/Resources/backpack.png")) // картинка
                 }
             };
             return carMarker = markCar;
         }
 
         // метод перемещения по маршруту
-        public GMapMarker moveTo(List<PointLatLng> pointsRoute)
+        public GMapMarker moveTo(PointLatLng pointRoute)
         {
             List<PointLatLng> AllpointRoute = new List<PointLatLng>();
-            for (int i = 0; i < pointsRoute.Count - 1; i++)
+
+            MapRoute route = BingMapProvider.Instance.GetRoute(this.point, pointRoute, false, false, (int)15);
+            if (route != null)
             {
-                MapRoute route = BingMapProvider.Instance.GetRoute(pointsRoute[i], pointsRoute[i + 1], false, false, (int)15);
-                if (route != null)
-                {
-                    AllpointRoute = AllpointRoute.Concat(route.Points).ToList();
-                }
-                else
-                {
-                    System.Windows.Forms.MessageBox.Show("Не удалось найти маршрут");
-                }
+                AllpointRoute = AllpointRoute.Concat(route.Points).ToList();
             }
+            else
+            {
+                System.Windows.Forms.MessageBox.Show("Не удалось найти маршрут");
+            }
+
             this.route = new Route("Route", AllpointRoute);
 
             Thread newThread = new Thread(new ThreadStart(MoveByRoute));
             newThread.Start();
 
-            return route.getMarker();
+            return this.route.getMarker();
 
         }
+        // событие прибытия
+        public event EventHandler Arrived;
+
         private void MoveByRoute()
         {
             // последовательный перебор точек маршрута
             foreach (var point in route.getPoints())
             {
                 // делегат, возвращающий управление в главный поток
-                Application.Current.Dispatcher.Invoke(delegate {
+                Application.Current.Dispatcher.Invoke(delegate
+                {
                     // изменение позиции маркера
                     carMarker.Position = point;
+                    this.point = point;
+                    if (orderPoints != null)
+                    {
+                        foreach (var food in orderPoints)
+                        {
+                            food.FMarker.Position = point;
+                        }
+                    }
                 });
                 // задержка 500 мс
-                Thread.Sleep(500);
+                Thread.Sleep(200);
             }
+            // отправка события о прибытии после достижения последней точки маршрута
+            Arrived?.Invoke(this, null);
         }
-
 
         private void turnMarker(PointLatLng point, PointLatLng nextPoint)
         {
@@ -109,5 +122,16 @@ namespace _33.Пшы
             getMarker().Shape.RenderTransform = new RotateTransform { Angle = angle };
         }
 
+        public void foodInCar(object sender, EventArgs e)
+        {
+            Food f = (Food)sender;
+            orderPoints.Add(f);
+            
+            Application.Current.Dispatcher.Invoke(delegate
+            {
+                gMap.Markers.Add(this.moveTo(f.nextLoc.getFocus()));
+            });
+
+        }
     }
 }

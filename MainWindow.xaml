@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:_33.Пшы"
         xmlns:WindowsPresentation="clr-namespace:GMap.NET.WindowsPresentation;assembly=GMap.NET.WindowsPresentation" x:Class="_33.Пшы.MainWindow"
         mc:Ignorable="d"
-        Title="MainWindow" Height="459" Width="600.333">
+        Title="MainWindow" Height="459" Width="868.333">
     <Grid Margin="0,0,2,0">
         <WindowsPresentation:GMapControl Name="Map" Loaded="MapLoaded" MouseLeftButtonDown="Map_MouseLeftButtonDown" HorizontalAlignment="Left" Width="485" Margin="95,10,0,40"/>
         <Button x:Name="btn_reset" Content="Reset" HorizontalAlignment="Left" Height="30" VerticalAlignment="Top" Width="90" Margin="0,17,0,0" Click="btn_reset_Click" />
@@ -18,7 +18,7 @@
         <CheckBox x:Name="chb_egg" Content="Яйцо" HorizontalAlignment="Left" Margin="10,147,0,0" VerticalAlignment="Top"/>
         <Button x:Name="btn_pointB" Content="Куда" HorizontalAlignment="Left" Height="30" VerticalAlignment="Top" Width="90" Margin="0,353,0,0" Click="btn_pointB_Click"/>
         <Button x:Name="btn_go" Content="Поехали!" HorizontalAlignment="Left" Height="30" Margin="0,388,0,0" VerticalAlignment="Top" Width="90" Click="btn_go_Click"/>
-        <ProgressBar HorizontalAlignment="Left" Height="30" Margin="90,388,0,0" VerticalAlignment="Top" Width="500"/>
-
+        <ProgressBar x:Name="pbar" HorizontalAlignment="Left" Height="30" Margin="90,388,0,0" VerticalAlignment="Top" Width="500"/>
+        <TextBlock x:Name="log" HorizontalAlignment="Left" Margin="597,17,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="401" Width="251" Background="Black" Foreground="#FF54FF43"/>
     </Grid>
 </Window>

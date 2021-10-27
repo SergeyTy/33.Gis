@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 
@@ -15,6 +16,10 @@ namespace _33.Пшы
         PointLatLng point;
         PointLatLng destination;
         int type = 0; //0 -  curd; 1 - watermelon; 2 - milk; 3 - meat; 4 - egg;
+        public GMapMarker FMarker = null;
+        public GMapMarker WFMarker = null;
+        public MapObject nextLoc = null;
+
         public Food(string title, PointLatLng point, int type) : base(title)
         {
             this.point = point;
@@ -49,8 +54,7 @@ namespace _33.Пшы
 
         public override GMapMarker getMarker()
         {
-            GMapMarker MarkHuman;
-            MarkHuman = new GMapMarker(point)
+            FMarker = new GMapMarker(point)
             {
                 Shape = new Image
                 {
@@ -64,7 +68,7 @@ namespace _33.Пшы
             switch (type)
             {
                 case 0:
-                    MarkHuman = new GMapMarker(point)
+                    FMarker = new GMapMarker(point)
                     {
                         Shape = new Image
                         {
@@ -77,7 +81,7 @@ namespace _33.Пшы
                     };
                     break;
                 case 1:
-                    MarkHuman = new GMapMarker(point)
+                    FMarker = new GMapMarker(point)
                     {
                         Shape = new Image
                         {
@@ -90,7 +94,7 @@ namespace _33.Пшы
                     };
                     break;
                 case 2:
-                    MarkHuman = new GMapMarker(point)
+                    FMarker = new GMapMarker(point)
                     {
                         Shape = new Image
                         {
@@ -103,7 +107,7 @@ namespace _33.Пшы
                     };
                     break;
                 case 3:
-                    MarkHuman = new GMapMarker(point)
+                    FMarker = new GMapMarker(point)
                     {
                         Shape = new Image
                         {
@@ -116,7 +120,7 @@ namespace _33.Пшы
                     };
                     break;
                 case 4:
-                    MarkHuman = new GMapMarker(point)
+                    FMarker = new GMapMarker(point)
                     {
                         Shape = new Image
                         {
@@ -131,9 +135,27 @@ namespace _33.Пшы
                 default:
                     break;
             }
+            return FMarker;
+        }
 
-            return MarkHuman;
+        public event EventHandler foodInCar;
 
+        public override void CarArrived(object sender, EventArgs e)
+        {
+            Car car = (Car)sender;
+            if (nextLoc != null)
+            {
+                car.Arrived -= this.CarArrived;
+                MessageBox.Show("Я забрал "+this.getTitle());
+                car.Arrived += this.nextLoc.CarArrived;
+                //car.moveTo(nearstwarehouse.getFocus());
+                foodInCar?.Invoke(this, EventArgs.Empty);
+                this.foodInCar -= car.foodInCar;
+            }
+            else
+            {
+                MessageBox.Show("Доставлено");
+            }
         }
     }
 }

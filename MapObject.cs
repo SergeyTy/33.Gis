@@ -29,6 +29,8 @@ namespace _33.Пшы
         public abstract PointLatLng getFocus();
         public abstract GMapMarker getMarker();
 
+        public virtual void CarArrived(object sender, EventArgs e) { }
+
 
     }
 }
